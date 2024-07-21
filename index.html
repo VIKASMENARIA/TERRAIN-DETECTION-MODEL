@@ -4,95 +4,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Terrain Type Predictor</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
-<style>
-   
-    html {
-        text-align: center;
-       
-        /* Add this line */
-     
-        background-color: rgb(232, 232, 232);
-    }
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
 
-    #imageContainer {
-        text-align: center;
-        margin-top: 5%;
-    }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+        }
 
-    #imageInput {
-        width: 300px;
-        height: 300px;
-    }
+        #imageContainer {
+            margin-top: 50px;
+        }
 
-   #prediction {
-    display: block;
-    margin: auto;
-    width: fit-content;
-    /* Change this line */
-    margin-top: -20%;
-    
+        #imageInput {
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+        }
 
-    
-    border-radius: 5px;
-   
-}
+        #prediction {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 400px;
+        }
 
         footer {
+            background-color: #4CAF50;
+            color: white;
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 5px 0;
-           
+            padding: 10px 0;
+            display: flex;
+            justify-content: center;
         }
 
         .fa {
-  padding: 20px;
-  font-size: 30px;
-  width: 50px;
-  text-align: center;
-  text-decoration: none;
-}
+            padding: 20px;
+            font-size: 30px;
+            width: 50px;
+            text-align: center;
+            text-decoration: none;
+        }
 
-/* Add a hover effect if you want */
-.fa:hover {
-  opacity: 0.7;
-}
+        .fa:hover {
+            opacity: 0.7;
+        }
 
-/* Set a specific color for each brand */
+        .fa-linkedin {
+            background: #0077B5;
+            color: white;
+        }
 
-.fa-linkedin {
-  background: #3B5998;
-  color: white;
-}
+        .fa-github {
+            background: #333;
+            color: white;
+        }
 
-
-.fa-github {
-  background: #55ACEE;
-  color: white;
-}
-.fa-instagram {
-  background: #00177d;
-  color: rgb(255, 2, 2);
-}
+        .fa-instagram {
+            background: #C13584;
+            color: white;
+        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    
+</head>
+
 <body>
 
-    
+    <header>
+        <h1>Terrain Type Predictor</h1>
+    </header>
+
     <div id="imageContainer">
-        
-
+        <h2>Upload Satellite Terrain Image</h2>
+        <input id="imageInput" type="file">
     </div>
-    
-    <div id="prediction" style="display: block; margin: auto; width: fit-content;">Please Upload Satellite Terrain Image <h3> <input id="imageInput" type="file"></h3></div>
-    <script>
 
+    <div id="prediction">Prediction result will appear here...</div>
+
+    <footer>
+        <a href="https://www.linkedin.com/in/vikasmenaria" class="fa fa-linkedin"></a>
+        <a href="https://github.com/VIKASMENARIA" class="fa fa-github"></a>
+        <a href="https://www.instagram.com/in/vikasmenaria_official/" class="fa fa-instagram"></a>
+    </footer>
+
+    <script>
         const readImageFile = (file) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -103,114 +114,58 @@
             });
         };
 
-
         const createHTMLImageElement = (imageSrc) => {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => {
-                    document.getElementById("imageContainer").innerHTML = ""
+                    document.getElementById("imageContainer").innerHTML = "";
                     img.style.display = "block";
-            img.style.width = "300px"; // Add this line
-            img.style.height = "300px"; // Add this line
-            img.style.margin = "auto";
-                    document.getElementById("imageContainer").appendChild( img)
-                    resolve(img)
+                    img.style.width = "300px";
+                    img.style.height = "300px";
+                    img.style.margin = "auto";
+                    document.getElementById("imageContainer").appendChild(img);
+                    resolve(img);
                 };
 
                 img.src = imageSrc;
             });
         };
 
-        console.log("started")
-        let model
+        console.log("started");
+        let model;
         async function loadModel() {
-            model = await tf.loadGraphModel('terrainModel/model.json')
-            console.log(model)
+            model = await tf.loadGraphModel('terrainModel/model.json');
+            console.log(model);
         }
-        loadModel()
+        loadModel();
+
         document.querySelector("#imageInput").addEventListener('change', async (event) => {
-            let file = event.target.files[0]
-            // console.log(file)
+            let file = event.target.files[0];
             let fileReader = new FileReader();
-            console.log(URL.createObjectURL(file))
+            console.log(URL.createObjectURL(file));
             fileReader.readAsDataURL(file);
-            let result = await readImageFile(file)
-            let image = await createHTMLImageElement(result)
-            // console.log(image)
+            let result = await readImageFile(file);
+            let image = await createHTMLImageElement(result);
 
-            let imgTensor = tf.browser.fromPixels(image)
-            // console.log(imgTensor)
-            imgTensor = imgTensor.resizeNearestNeighbor([180, 180]).toFloat()
-            imgTensor = imgTensor.expandDims(0)
-            // console.log(imgTensor)
-            let prediction = await model.predict(imgTensor).data()
-            console.log(prediction)
-            maxIndex = 0
-            max = prediction[0]
-            prediction.map((item, index) => {
-                console.log(item, index)
+            let imgTensor = tf.browser.fromPixels(image);
+            imgTensor = imgTensor.resizeNearestNeighbor([180, 180]).toFloat();
+            imgTensor = imgTensor.expandDims(0);
+
+            let prediction = await model.predict(imgTensor).data();
+            console.log(prediction);
+            let maxIndex = 0;
+            let max = prediction[0];
+            prediction.forEach((item, index) => {
                 if (item > max) {
-                    maxIndex = index
-                    max = item
+                    maxIndex = index;
+                    max = item;
                 }
-            })
-            let classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy']
-            document.getElementById("prediction").innerText = classes[maxIndex] + " is the most likely terrain type."
+            });
 
-
-
-
-        })
-
+            let classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy'];
+            document.getElementById("prediction").innerText = `${classes[maxIndex]} is the most likely terrain type.`;
+        });
     </script>
-    <footer>
-        <div style="display: flex; justify-content: center; align-items: center; margin-top: 50px;">
-            <a href="https://www.linkedin.com/in/vikasmenaria" class="fa fa-linkedin"></a>
-            </a>
-            <a href="https://github.com/VIKASMENARIA" class="fa fa-github"></a>
-            </a>
-            <a href="https://www.instagram.com/in/vikasmenaria_official/" class="fa fa-instagram"></a>
-            </a>
-        </div>
-    </footer>
 </body>
 
 </html>
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        body{
-            background-color: aquamarine;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-</head>
-<body>
-    <h3><input id="imageInput" type="file"></h3>
-    <div id="imageContainer"></div>
-    <script>
-        console.log("started")
-        let model
-        async function loadModel(){
-            model = await tf.loadGraphModel('terrainModel/model.json')
-            console.log(model)
-        }
-        loadModel()
-        document.querySelector("#imageInput").addEventListener( 'change', async (event)=>{
-        
-            let path = URL.createObjectURL(file)
-
-            console.log(path)
-            imageInput.src = path
-            console.log(imageInput)
-            document.querySelector("#imageContainer").appendChild(imageInput)
-        })
-    </script>
-</body>
-</html> 
--->
