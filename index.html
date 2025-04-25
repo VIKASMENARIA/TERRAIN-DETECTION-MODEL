@@ -1,112 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Terrain Type Predictor</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e0f7fa;
-            color: #333;
+            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
             margin: 0;
-            padding: 0;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
         }
 
-        header {
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+            padding: 40px 20px;
+            text-align: center;
+            animation: fadeIn 1s ease-in;
+        }
+
+        h1 {
+            color: #00695c;
+            margin-bottom: 10px;
+        }
+
+        .upload-label {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 12px 25px;
             background-color: #00897b;
             color: white;
-            padding: 20px;
-            text-align: center;
-            width: 100%;
-            font-size: 24px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
 
-        #imageContainer {
-            text-align: center;
-            margin: 50px 0;
+        .upload-label:hover {
+            background-color: #004d40;
         }
 
-        #imageInput {
-            width: 80%;
-            max-width: 300px;
-            height: 300px;
-            padding: 10px;
-            border: 2px dashed #00897b;
-            border-radius: 10px;
-            transition: border-color 0.3s, transform 0.3s;
+        input[type="file"] {
+            display: none;
         }
 
-        #imageInput:hover {
-            border-color: #004d40;
-            transform: scale(1.05);
+        .preview {
+            margin: 20px 0;
         }
 
-        #prediction {
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
-            width: 80%;
-            max-width: 400px;
-            transition: background-color 0.3s, box-shadow 0.3s;
+        .preview img {
+            max-width: 100%;
+            border-radius: 12px;
         }
 
-        #prediction:hover {
-            background-color: #e0f2f1;
-            box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
         }
 
-        footer {
-            background-color: #00897b;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-            width: 100%;
-            position: absolute;
-            bottom: 0;
-            display: flex;
-            justify-content: center;
+        .socials {
+            margin-top: 30px;
         }
 
-        .fa {
-            padding: 20px;
-            font-size: 30px;
-            width: 50px;
-            text-align: center;
+        .socials a {
+            margin: 0 10px;
             text-decoration: none;
-            transition: opacity 0.3s, transform 0.3s;
+            font-size: 24px;
+            color: #555;
+            transition: transform 0.3s;
         }
 
-        .fa:hover {
-            opacity: 0.7;
-            transform: scale(1.1);
-        }
-
-        .fa-linkedin {
-            background: #0077B5;
-            color: white;
-        }
-
-        .fa-github {
-            background: #333;
-            color: white;
-        }
-
-        .fa-instagram {
-            background: #C13584;
-            color: white;
+        .socials a:hover {
+            transform: scale(1.2);
         }
 
         @keyframes fadeIn {
@@ -120,95 +95,32 @@
             }
         }
 
-        .fade-in {
-            animation: fadeIn 1s ease-in;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 20px;
-            }
-
-            header {
-                font-size: 20px;
-            }
-
-            #imageInput {
-                width: 100%;
-                height: auto;
-            }
-
-            #prediction {
-                width: 100%;
-                margin: 20px 0;
-            }
-
-            footer {
-                flex-direction: column;
-                padding: 20px 0;
-            }
-
-            .fa {
-                font-size: 24px;
-                padding: 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            header {
-                font-size: 18px;
-                padding: 10px;
-            }
-
-            .fa {
-                font-size: 20px;
-                padding: 8px;
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 15px;
             }
         }
     </style>
 </head>
-
 <body>
-    <header class="fade-in">
-        Terrain Type Predictor
-    </header>
-
-    <div id="imageContainer" class="fade-in">
-        <h2>Upload Satellite Terrain Image</h2>
-        <input id="imageInput" type="file">
+    <div class="container">
+        <h1>Terrain Type Predictor</h1>
+        <label for="imageInput" class="upload-label">Upload Terrain Image</label>
+        <input id="imageInput" type="file" />
+        <div class="preview" id="imageContainer"></div>
+        <div class="result" id="prediction">Prediction result will appear here...</div>
+        <div class="socials">
+            <a href="https://www.linkedin.com/in/vikasmenaria" target="_blank">🔗</a>
+            <a href="https://github.com/VIKASMENARIA" target="_blank">🐙</a>
+            <a href="https://www.instagram.com/in/vikasmenaria_official/" target="_blank">📷</a>
+        </div>
     </div>
-
-    <div id="prediction" class="fade-in pulse">Prediction result will appear here...</div>
-
-    <footer>
-        <a href="https://www.linkedin.com/in/vikasmenaria" class="fa fa-linkedin"></a>
-        <a href="https://github.com/VIKASMENARIA" class="fa fa-github"></a>
-        <a href="https://www.instagram.com/in/vikasmenaria_official/" class="fa fa-instagram"></a>
-    </footer>
 
     <script>
         const readImageFile = (file) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
-
                 reader.onload = () => resolve(reader.result);
-
                 reader.readAsDataURL(file);
             });
         };
@@ -217,55 +129,39 @@
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => {
-                    document.getElementById("imageContainer").innerHTML = "";
-                    img.style.display = "block";
-                    img.style.width = "300px";
-                    img.style.height = "300px";
-                    img.style.margin = "auto";
-                    img.classList.add("fade-in");
-                    document.getElementById("imageContainer").appendChild(img);
+                    const container = document.getElementById("imageContainer");
+                    container.innerHTML = "";
+                    img.style.maxWidth = "100%";
+                    container.appendChild(img);
                     resolve(img);
                 };
-
                 img.src = imageSrc;
             });
         };
 
-        console.log("started");
         let model;
         async function loadModel() {
             model = await tf.loadGraphModel('terrainModel/model.json');
-            console.log(model);
+            console.log("Model loaded");
         }
         loadModel();
 
         document.querySelector("#imageInput").addEventListener('change', async (event) => {
-            let file = event.target.files[0];
-            let fileReader = new FileReader();
-            console.log(URL.createObjectURL(file));
-            fileReader.readAsDataURL(file);
-            let result = await readImageFile(file);
-            let image = await createHTMLImageElement(result);
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const result = await readImageFile(file);
+            const image = await createHTMLImageElement(result);
 
             let imgTensor = tf.browser.fromPixels(image);
-            imgTensor = imgTensor.resizeNearestNeighbor([180, 180]).toFloat();
-            imgTensor = imgTensor.expandDims(0);
+            imgTensor = imgTensor.resizeNearestNeighbor([180, 180]).toFloat().expandDims(0);
 
-            let prediction = await model.predict(imgTensor).data();
-            console.log(prediction);
-            let maxIndex = 0;
-            let max = prediction[0];
-            prediction.forEach((item, index) => {
-                if (item > max) {
-                    maxIndex = index;
-                    max = item;
-                }
-            });
+            const prediction = await model.predict(imgTensor).data();
 
-            let classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy'];
-            document.getElementById("prediction").innerText = `${classes[maxIndex]} is the most likely terrain type.`;
+            const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy'];
+            const maxIndex = prediction.indexOf(Math.max(...prediction));
+            document.getElementById("prediction").innerText = `Prediction: ${classes[maxIndex]}`;
         });
     </script>
 </body>
-
 </html>
