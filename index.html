@@ -25,12 +25,27 @@
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
-    #video {
-      width: 90%;
-      max-width: 640px;
+    #imageInput {
       margin: 30px auto;
+      padding: 20px;
+      border: 2px dashed #558b2f;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+
+    #imageInput:hover {
+      border-color: #33691e;
+    }
+
+    #preview {
+      margin-top: 20px;
+      max-width: 300px;
+      height: auto;
       border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     }
 
     .output {
@@ -58,71 +73,62 @@
   </style>
 </head>
 <body>
-  <header>Realtime Terrain Monitoring using Multispectral Imaging</header>
+  <header>Terrain Monitoring using Multispectral Imaging</header>
 
-  <video id="video" autoplay playsinline></video>
+  <input type="file" accept="image/*" id="imageInput"/>
+  <img id="preview" src="" alt="Image Preview" style="display:none;"/>
 
-  <div class="output" id="status">Initializing model and camera...</div>
+  <div class="output" id="status">Model is loading...</div>
   <div class="output" id="terrainStatus">Terrain Status will appear here...</div>
 
   <footer>&copy; 2025 Vikas Menaria | Terrain Deep Learning Monitor</footer>
 
   <script>
-    const video = document.getElementById("video");
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
     const terrainStatusText = document.getElementById("terrainStatus");
     const statusText = document.getElementById("status");
 
     let model;
 
     async function loadModel() {
-      statusText.innerText = "Loading model...";
       model = await tf.loadGraphModel("terrainModel/model.json");
-      statusText.innerText = "Model loaded. Starting camera...";
+      statusText.innerText = "Model loaded. Upload an image.";
     }
 
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
+    imageInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-        video.addEventListener("loadeddata", () => {
-          statusText.innerText = "Camera started. Monitoring terrain...";
-          monitorTerrain();
-        });
-      } catch (error) {
-        statusText.innerText = "Camera access denied or unavailable.";
-        console.error(error);
-      }
-    }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        preview.src = reader.result;
+        preview.style.display = "block";
 
-    async function monitorTerrain() {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = async () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 180;
+          canvas.height = 180;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, 180, 180);
 
-      canvas.width = 180;
-      canvas.height = 180;
+          let imgTensor = tf.browser.fromPixels(canvas)
+            .toFloat()
+            .expandDims(0);
 
-      async function predictFrame() {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const prediction = await model.predict(imgTensor).data();
+          const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy']; // modify as needed
+          const maxIndex = prediction.indexOf(Math.max(...prediction));
 
-        let imgTensor = tf.browser.fromPixels(imageData)
-          .resizeNearestNeighbor([180, 180])
-          .toFloat()
-          .expandDims(0);
+          terrainStatusText.innerText = `Terrain Status: ${classes[maxIndex]}`;
+        };
+      };
+      reader.readAsDataURL(file);
+    });
 
-        const prediction = await model.predict(imgTensor).data();
-        const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy']; // adjust as per your model
-        const maxIndex = prediction.indexOf(Math.max(...prediction));
-
-        terrainStatusText.innerText = `Terrain Status: ${classes[maxIndex]}`;
-        requestAnimationFrame(predictFrame);
-      }
-
-      predictFrame();
-    }
-
-    loadModel().then(startCamera);
+    loadModel();
   </script>
 </body>
 </html>
