@@ -3,97 +3,377 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Realtime Terrain Monitoring</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <title>Terrain Deep Learning Monitor</title>
+  
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">  
+
+  <!-- Embedded CSS -->
   <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f1f8e9;
+    /* ===============================
+       1. Variables and Base Styles
+       =============================== */
+    :root {
+      --primary-color: #4caf50;
+      --primary-dark: #388e3c;
+      --secondary-color: #fafafa;
+      --text-color: #333;
+      --bg-color: #f5f5f5;
+      --font-sans: 'Roboto', sans-serif;
+      --transition-speed: 0.3s;
+    }
+    * {
       margin: 0;
       padding: 0;
-      text-align: center;
-      color: #333;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    img {
+      max-width: 100%;
+      display: block;
     }
 
-    header {
-      background-color: #558b2f;
-      color: white;
-      padding: 20px;
-      font-size: 28px;
+    /* ===============================
+       2. Navbar Styles
+       =============================== */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--primary-color);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .navbar .logo {
+      font-size: 1.5rem;
       font-weight: 700;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    #imageInput {
-      margin: 30px auto;
-      padding: 20px;
-      border: 2px dashed #558b2f;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 400px;
-      cursor: pointer;
-      transition: border-color 0.3s;
-    }
-
-    #imageInput:hover {
-      border-color: #33691e;
-    }
-
-    #preview {
-      margin-top: 20px;
-      max-width: 300px;
-      height: auto;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .output {
-      margin-top: 20px;
-      font-size: 22px;
-      padding: 15px;
-      background-color: #ffffff;
-      display: inline-block;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      transition: 0.3s ease-in-out;
-    }
-
-    .output:hover {
-      background-color: #e6ee9c;
-    }
-
-    footer {
-      margin-top: 50px;
-      background-color: #33691e;
       color: white;
-      padding: 15px;
-      font-size: 14px;
+    }
+    .navbar ul {
+      list-style: none;
+      display: flex;
+    }
+    .navbar ul li {
+      margin-left: 1.5rem;
+    }
+    .navbar ul li a {
+      color: white;
+      font-weight: 500;
+      transition: color var(--transition-speed);
+    }
+    .navbar ul li a:hover {
+      color: var(--secondary-color);
+    }
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+    }
+    .nav-toggle span {
+      height: 3px;
+      width: 25px;
+      background-color: white;
+      margin-bottom: 4px;
+      border-radius: 2px;
+    }
+
+    /* ===============================
+       3. Hero Section
+       =============================== */
+    .hero {
+      background-color: var(--secondary-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-dark);
+    }
+    .hero p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      max-width: 600px;
+    }
+    .btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 5px;
+      font-weight: 500;
+      transition: background-color var(--transition-speed);
+    }
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* ===============================
+       4. Features Section
+       =============================== */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      padding: 4rem 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 2rem;
+      text-align: center;
+      transition: transform var(--transition-speed);
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h3 {
+      margin-bottom: 1rem;
+      color: var(--primary-dark);
+    }
+    .card p {
+      font-size: 0.95rem;
+    }
+
+    /* ===============================
+       5. Section Containers
+       =============================== */
+    section {
+      scroll-margin-top: 70px; /* space for fixed navbar */
+    }
+
+    /* ===============================
+       6. Monitor Section
+       =============================== */
+    .monitor-container {
+      max-width: 800px;
+      margin: 3rem auto;
+      background: white;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .monitor-container h2 {
+      margin-bottom: 1.5rem;
+      color: var(--primary-dark);
+      font-size: 1.8rem;
+    }
+    #imageInput {
+      display: block;
+      margin: 1.5rem auto;
+      padding: 1rem;
+      border: 2px dashed var(--primary-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color var(--transition-speed);
+    }
+    #imageInput:hover {
+      border-color: var(--primary-dark);
+    }
+    #preview {
+      display: none;
+      margin: 1.5rem auto;
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .output {
+      margin-top: 1.5rem;
+      font-size: 1.2rem;
+      padding: 1rem;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: background-color var(--transition-speed);
+    }
+    .output:hover {
+      background-color: #eef7ec;
+    }
+
+    /* ===============================
+       7. About Section
+       =============================== */
+    .about-section {
+      max-width: 800px;
+      margin: 3rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .about-section h2 {
+      margin-bottom: 1rem;
+      color: var(--primary-dark);
+      text-align: center;
+      font-size: 1.8rem;
+    }
+    .about-section p {
+      font-size: 1rem;
+      line-height: 1.8;
+      margin-bottom: 1rem;
+    }
+
+    /* ===============================
+       8. Footer
+       =============================== */
+    footer {
+      background-color: var(--primary-dark);
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      margin-top: 3rem;
+      font-size: 0.9rem;
+    }
+
+    /* ===============================
+       9. Responsive Breakpoints
+       =============================== */
+    @media (max-width: 768px) {
+      .navbar ul {
+        position: absolute;
+        top: 100%;
+        left: -100%;
+        width: 100%;
+        background-color: var(--primary-color);
+        flex-direction: column;
+        transition: left var(--transition-speed);
+      }
+      .navbar ul.active {
+        left: 0;
+      }
+      .navbar ul li {
+        margin: 1.5rem 0;
+        text-align: center;
+      }
+      .nav-toggle {
+        display: flex;
+      }
     }
   </style>
 </head>
+
 <body>
-  <header>Terrain Monitoring using Multispectral Imaging</header>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="#home" class="logo">TerrainMonitor</a>
+    <div class="nav-toggle" id="navToggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <ul id="navMenu">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#monitor">Monitor</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+  </nav>
 
-  <input type="file" accept="image/*" id="imageInput"/>
-  <img id="preview" src="" alt="Image Preview" style="display:none;"/>
+  <!-- Home Section -->
+  <section id="home" class="hero">
+    <h1>Real-time Multispectral Terrain Monitoring</h1>
+    <p>
+      Inspect your land instantly with modern deep learning. Upload an image and get immediate classification via our TensorFlow.js–powered web app.
+    </p>
+    <a href="#monitor" class="btn">Start Monitoring</a>
+  </section>
 
-  <div class="output" id="status">Model is loading...</div>
-  <div class="output" id="terrainStatus">Terrain Status will appear here...</div>
+  <!-- Features -->
+  <section class="features">
+    <div class="card">
+      <h3>Instant Feedback</h3>
+      <p>Get classification results in seconds—upload and let the model do the rest.</p>
+    </div>
+    <div class="card">
+      <h3>Multiple Categories</h3>
+      <p>Grassy, Marshy, Rocky, Sandy—and more as we expand.</p>
+    </div>
+    <div class="card">
+      <h3>Privacy-Focused</h3>
+      <p>All processing happens client-side with TensorFlow.js—your images never leave the browser.</p>
+    </div>
+    <div class="card">
+      <h3>Responsive Design</h3>
+      <p>Enjoy a seamless experience on desktop, tablet, or mobile.</p>
+    </div>
+  </section>
 
-  <footer>&copy; 2025 Vikas Menaria | Terrain Deep Learning Monitor</footer>
+  <!-- Monitor Section -->
+  <section id="monitor" class="monitor-container">
+    <h2>Upload Terrain Image</h2>
+    <input type="file" accept="image/*" id="imageInput"/>
+    <img id="preview" src="" alt="Image Preview" />
+    <div class="output" id="status">Model is loading...</div>
+    <div class="output" id="terrainStatus">Terrain classification will appear here...</div>
+  </section>
 
+  <!-- About Section -->
+  <section id="about" class="about-section">
+    <h2>About This Project</h2>
+    <p>
+      <strong>Terrain Deep Learning Monitor</strong> is a web-based application that uses multispectral imaging and TensorFlow.js to perform real-time terrain classification. Designed to simplify field surveying, agriculture, and environmental monitoring, it runs entirely client-side for maximum privacy.
+    </p>
+    <p>
+      <strong>Key Features:</strong><br>
+      1. Client-Side Model Loading: Uses TensorFlow.js—no image data is ever sent to a server.<br>
+      2. Responsive Design: Works flawlessly on mobile, tablet, and desktop.<br>
+      3. Multi-Class Output: Classifies into Grassy, Marshy, Rocky, Sandy, and more.<br>
+      4. Easy Integration: Open-source model combined with simple HTML/CSS/JS structure, ready to host anywhere.
+    </p>
+    <p>
+      <strong>Future Plans:</strong><br>
+      • Add more terrain categories (e.g., Barren, Urban, Water Body).<br>
+      • User Dashboard: Upload history, performance reports, and analytics.<br>
+      • Dedicated Mobile App: Using React Native or Flutter.<br>
+      • Cloud Integration: Store images and analytics with Firebase or AWS.
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Vikas Menaria | Terrain Deep Learning Monitor</p>
+  </footer>
+
+  <!-- Embedded JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
   <script>
+    // Navbar toggle for mobile
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.getElementById('navMenu');
+    navToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+    });
+
+    // TensorFlow.js logic
     const imageInput = document.getElementById("imageInput");
     const preview = document.getElementById("preview");
-    const terrainStatusText = document.getElementById("terrainStatus");
     const statusText = document.getElementById("status");
-
+    const terrainStatusText = document.getElementById("terrainStatus");
     let model;
 
     async function loadModel() {
-      model = await tf.loadGraphModel("terrainModel/model.json");
-      statusText.innerText = "Model loaded. Upload an image.";
+      try {
+        model = await tf.loadGraphModel("terrainModel/model.json");
+        statusText.innerText = "Model loaded. Please upload an image.";
+      } catch (err) {
+        statusText.innerText = "Error loading model: " + err;
+      }
     }
 
     imageInput.addEventListener("change", async (e) => {
@@ -108,6 +388,7 @@
         const img = new Image();
         img.src = reader.result;
         img.onload = async () => {
+          // Resize to 180×180 for the model
           const canvas = document.createElement("canvas");
           canvas.width = 180;
           canvas.height = 180;
@@ -119,7 +400,7 @@
             .expandDims(0);
 
           const prediction = await model.predict(imgTensor).data();
-          const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy']; // modify as needed
+          const classes = ['Grassy', 'Marshy', 'Rocky', 'Sandy'];
           const maxIndex = prediction.indexOf(Math.max(...prediction));
 
           terrainStatusText.innerText = `Terrain Status: ${classes[maxIndex]}`;
@@ -127,7 +408,9 @@
       };
       reader.readAsDataURL(file);
     });
-  loadModel();
+
+    // Kick off model loading
+    loadModel();
   </script>
 </body>
 </html>
